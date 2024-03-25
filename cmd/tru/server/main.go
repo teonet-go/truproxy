@@ -19,6 +19,7 @@ import (
 const (
 	appShort   = "teoproxy-serve"
 	appName    = "Teonet truproxy web server"
+	appLong  = ``
 	appVersion = "0.0.1"
 )
 

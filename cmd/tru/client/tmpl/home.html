@@ -1,0 +1,107 @@
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <script type="module" src="teoweb.js"></script>
+    <script type="module">
+        import teoweb from './teoweb.js';
+        //window.addEventListener("load", function(evt) {
+        console.log("started connecting to teonet using the teoweb client...");
+    
+        // Connect to Teonet WebRTC server
+        const url = "wss://signal.teonet.dev/signal";
+        const login = "web-1";
+        const server = "server-1";
+        let teo = new teoweb();
+        teo.connect(url, login, server);
+
+        // Use to make teo global
+        // window.teo = teo;
+
+        // Page elements
+        const name = document.getElementById("name");
+        const online = document.getElementById("online");
+        const uptime = document.getElementById("uptime");
+        const version = document.getElementById("version");
+        const clients = document.getElementById("clients");
+
+        // Commands
+        const cmdName = "name";
+        const cmdUptime = "uptime";
+        const cmdVersion = "version";
+        const cmdClients = "clients";
+
+        teo.addReader(function (gw, data) {
+            switch (gw.command) {
+            case cmdClients:
+                clients.innerHTML = data;
+                break;
+            case cmdName:
+                name.innerHTML = data;
+                break;
+            case cmdVersion:
+                version.innerHTML = data;
+                break;
+            case cmdUptime:
+                uptime.innerHTML = data;
+                break;
+            }
+        });
+
+        teo.onOpen(function () {
+            console.debug("onOpen");
+            online.innerHTML = true;
+            teo.sendCmd(cmdName);
+            teo.sendCmd(cmdUptime);
+            teo.sendCmd(cmdVersion);
+            teo.sendCmd(cmdClients);
+            teo.subscribeCmd(cmdClients);
+        });
+
+        teo.onClose(function (b) {
+            console.debug("onClose");
+            online.innerHTML = false;
+        });
+        //});
+    </script>
+
+    <title>{{.Title}}</title>
+</head>
+
+<div class="container">
+    <h1>{{.Name}}</h1>
+    <p class="subj">{{.Subj}}<br>
+        <br>
+        {{.AppName}} ver {{.AppVersion}}, based on Teonet v5 ver {{.TeonetVersion}}<br>
+        Teonet address: {{.Address}}<br>
+        Name: <span id="name"></span><br>
+        Online: <span id="online"></span><br>
+        Uptime: <span id="uptime"></span><br>
+        Version: <span id="version"></span><br>
+        Clients: <span id="clients"></span><br>
+    </p>
+
+    <a href="./">Get next</a><br>
+    <br>
+
+    <div class="body">{{.Body}}</div>
+</div>
+
+<style>
+    .container {
+        margin-top: 25px;
+        margin-bottom: 25px;
+        max-width: 835px;
+    }
+    .subj {
+        color: gray;
+        font-size: small;
+    }
+    .subj a {
+        color: gray;
+    }
+</style>
+
+</html>

@@ -1,8 +1,12 @@
-module github.com/teonet-go/truproxy/cmd/tru/serve
+module github.com/teonet-go/truproxy/cmd/tru/server
 
 go 1.22.1
 
-require github.com/NYTimes/gziphandler v1.1.1
+require (
+	github.com/NYTimes/gziphandler v1.1.1
+	github.com/teonet-go/truproxy v0.0.0-20240325093432-08679ddd454d
+	golang.org/x/crypto v0.9.0
+)
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
@@ -36,9 +40,9 @@ require (
 	github.com/teonet-go/teowebrtc_signal v0.0.8 // indirect
 	github.com/teonet-go/teowebrtc_signal_client v0.0.9 // indirect
 	github.com/teonet-go/tru v0.0.18 // indirect
-	golang.org/x/crypto v0.9.0 // indirect
 	golang.org/x/net v0.10.0 // indirect
 	golang.org/x/sys v0.14.0 // indirect
+	golang.org/x/text v0.9.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	nhooyr.io/websocket v1.8.7 // indirect
 )
