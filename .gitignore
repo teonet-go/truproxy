@@ -1,1 +1,3 @@
 node_modules
+cmd/tru/client/wasm/main.wasm
+cmd/tru/client/wasm/wasm_exec.js

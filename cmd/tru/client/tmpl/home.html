@@ -10,7 +10,7 @@
         import teoweb from './teoweb.js';
         //window.addEventListener("load", function(evt) {
         console.log("started connecting to teonet using the teoweb client...");
-    
+        
         // Connect to Teonet WebRTC server
         const url = "wss://signal.teonet.dev/signal";
         const server = "server-1";
@@ -20,7 +20,7 @@
         teo.connect(url, login, server);
 
         // Use to make teo global
-        // window.teo = teo;
+        window.teo = new teoweb();
 
         // Commands (equal to elements id)
         const cmdName = "name";
@@ -38,7 +38,7 @@
 
         teo.onOpen(function () {
             console.debug("onOpen");
-            online.innerHTML = true;
+            setIdText("online", true);
             teo.sendCmd(cmdName);
             teo.sendCmd(cmdUptime);
             teo.sendCmd(cmdVersion);
@@ -56,6 +56,7 @@
         function setIdText(id, text) {
             document.getElementById(id).innerHTML = text;
         }
+        window.setIdText = setIdText;
 
         /** Generate UUID */
         function uuidv4() {
@@ -66,6 +67,7 @@
                 return v.toString(16);
             });
         }
+        window.uuidv4 = uuidv4;
     </script>
 
     <!-- Include projects webassembly -->
