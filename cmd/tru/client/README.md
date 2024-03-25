@@ -1,49 +1,34 @@
-# Teonet fortune web-server microservice
+# Teonet truproxy client
 
-This is simple [Teonet](https://github.com/teonet-go/teonet) web-server microservice application which get fortune message from [Teonet Fortune](https://github.com/teonet-go/teofortune) microservice and show it in the site web page.
+This project contains the client and server of Teonet truproxy.
 
-[![GoDoc](https://godoc.org/github.com/teonet-go/teofortune-web?status.svg)](https://godoc.org/github.com/teonet-go/teofortune-web/)
-[![Go Report Card](https://goreportcard.com/badge/github.com/teonet-go/teofortune-web)](https://goreportcard.com/report/github.com/teonet-go/teofortune-web)
+## Client
 
-To create your own web-site you need to have host with IP address, domain and possibility to create record in this domain. We have created the [fortune.teonet.dev](https://fortune.teonet.dev) web-site and run it in Teonet Cloud.
+Client is a static web page created with golang template engine. It displays some servers static data.
 
-## Run the Teonet fortune web-site microservice
+It connects to server with teonet webrtc protocol using teoweb script. And displays connection info in "This page webrtc connection" web page section.
 
-There are various ways to start this Teonet microservice application:
+It connects also to server from it webasm part with teoproxy client package. And displays connection info in "Webasm webrtc connection" web page section.
 
-_In code blow we use preinstalled in Teonet Cloud teofortune microservice address: '-fortune=8agv3IrXQk7INHy5rVlbCxMWVmOOCoQgZBF'.
-Change this address to your application address. Or you can use this address, but than you will connect to `teofortune` microservice application running in Teonet Cloud. The address prints after you start Teonet application in string:_  
-`Teonet address: 8agv3IrXQk7INHy5rVlbCxMWVmOOCoQgZBF`
-
-### 1. From sources
-
-```bash
-git clone https://github.com/teonet-go/teofortune-web
-cd teofortune-web
-go run . -fortune=8agv3IrXQk7INHy5rVlbCxMWVmOOCoQgZBF -loglevel=debug
-```
-
-### 2. Install binary from github
-
-```bash
-go install github.com/teonet-go/teofortune-web .
-teofortune -fortune=8agv3IrXQk7INHy5rVlbCxMWVmOOCoQgZBF -loglevel=debug
-```
-
-### 3. Using docker
-
-```bash
-docker run -d -it --network=host --restart=always --name teofortune-web -v \
-$HOME/.config/teonet/teofortune-web:/root/.config/teonet/teofortune-web ghcr.io/teonet-go/\
-teofortune-web:latest teofortune-web \
--fortune=8agv3IrXQk7INHy5rVlbCxMWVmOOCoQgZBF -loglevel=debug
-```
+So this sample application connect to tha same server from web page and from webasm.
 
 ## How to use
 
-By default the teofortune-web site start at [localhost:8088](http://localhost:8088). If you run your web site in host with real IP you can add parameter `-domain=my.feature.example` to start real internet web server. Where the `my.feature.example` is your domain and you can create records in this domain.
+Copy the JavaScript support file:
 
-There is preinstalled teofortune-web web-site with name [fortune.teonet.dev](https://fortune.teonet.dev)
+```bash
+cp "$(go env GOROOT)/misc/wasm/wasm_exec.js" ./wasm
+```
+
+To run this server use next command:
+
+```bash
+# Build wasm
+cd wasm && ./build.sh && cd ..
+PORT=8085 go run .
+```
+
+Then open <http://localhost:8085> in browser.
 
 ## Licence
 

@@ -35,7 +35,7 @@ type Page struct {
 	Address       string
 }
 
-//go:embed static tmpl teoweb
+//go:embed static tmpl teoweb wasm
 var f embed.FS
 
 // newServe create Serve object and start http server which process http
@@ -60,6 +60,8 @@ func (s *Serve) serve(addr string) (err error) {
 	// Static files handlers
 	http.HandleFunc("/favicon.ico", s.faviconHandler)
 	http.HandleFunc("/teoweb.js", s.teowebHandler)
+	http.HandleFunc("/main.wasm", s.wasmHandler)
+	http.HandleFunc("/wasm_exec.js", s.wasmExecHandler)
 
 	// Run web server
 	if len(domain) > 0 {
@@ -133,6 +135,26 @@ func (s *Serve) teowebHandler(w http.ResponseWriter, r *http.Request) {
 	data, err := f.ReadFile(file)
 	if err != nil {
 		s.Log().Error.Printf("teowebHandler read file error: %v", err)
+	}
+	w.Header().Set("Content-Type", "text/javascript")
+	w.Write(data)
+}
+
+func (s *Serve) wasmHandler(w http.ResponseWriter, r *http.Request) {
+	file := "wasm/main.wasm"
+	data, err := f.ReadFile(file)
+	if err != nil {
+		s.Log().Error.Printf("wasmHandler read file error: %v", err)
+	}
+	w.Header().Set("Content-Type", "application/wasm")
+	w.Write(data)
+}
+
+func (s *Serve) wasmExecHandler(w http.ResponseWriter, r *http.Request) {
+	file := "wasm/wasm_exec.js"
+	data, err := f.ReadFile(file)
+	if err != nil {
+		s.Log().Error.Printf("wasmExecHandler read file error: %v", err)
 	}
 	w.Header().Set("Content-Type", "text/javascript")
 	w.Write(data)

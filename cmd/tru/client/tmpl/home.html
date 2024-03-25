@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
+    <!-- Include teoweb -->
     <script type="module" src="teoweb.js"></script>
     <script type="module">
         import teoweb from './teoweb.js';
@@ -12,22 +13,16 @@
     
         // Connect to Teonet WebRTC server
         const url = "wss://signal.teonet.dev/signal";
-        const login = "web-1";
         const server = "server-1";
+        const login = uuidv4();
+        setIdText("login", login);
         let teo = new teoweb();
         teo.connect(url, login, server);
 
         // Use to make teo global
         // window.teo = teo;
 
-        // Page elements
-        const name = document.getElementById("name");
-        const online = document.getElementById("online");
-        const uptime = document.getElementById("uptime");
-        const version = document.getElementById("version");
-        const clients = document.getElementById("clients");
-
-        // Commands
+        // Commands (equal to elements id)
         const cmdName = "name";
         const cmdUptime = "uptime";
         const cmdVersion = "version";
@@ -35,17 +30,8 @@
 
         teo.addReader(function (gw, data) {
             switch (gw.command) {
-            case cmdClients:
-                clients.innerHTML = data;
-                break;
-            case cmdName:
-                name.innerHTML = data;
-                break;
-            case cmdVersion:
-                version.innerHTML = data;
-                break;
-            case cmdUptime:
-                uptime.innerHTML = data;
+            case cmdClients || cmdName || cmdUptime || cmdVersion:
+                setIdText(gw.command, data);
                 break;
             }
         });
@@ -65,29 +51,66 @@
             online.innerHTML = false;
         });
         //});
+
+        /** Set text content to element by id */
+        function setIdText(id, text) {
+            document.getElementById(id).innerHTML = text;
+        }
+
+        /** Generate UUID */
+        function uuidv4() {
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'
+            .replace(/[xy]/g, function (c) {
+                const r = Math.random() * 16 | 0, 
+                    v = c == 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+        }
+    </script>
+
+    <!-- Include projects webassembly -->
+    <script src="wasm_exec.js"></script>
+    <script>
+      const go = new Go();
+      WebAssembly.instantiateStreaming(fetch("main.wasm"), go.importObject).then((result) => {
+          go.run(result.instance);
+      });
     </script>
 
     <title>{{.Title}}</title>
 </head>
 
-<div class="container">
+<body class="container">
     <h1>{{.Name}}</h1>
     <p class="subj">{{.Subj}}<br>
         <br>
+        This server static:<br>
         {{.AppName}} ver {{.AppVersion}}, based on Teonet v5 ver {{.TeonetVersion}}<br>
         Teonet address: {{.Address}}<br>
+        <br>
+        This page webrtc connection:<br>
         Name: <span id="name"></span><br>
+        Login: <span id="login"></span><br>
         Online: <span id="online"></span><br>
         Uptime: <span id="uptime"></span><br>
         Version: <span id="version"></span><br>
         Clients: <span id="clients"></span><br>
+        <br>
+        Webasm webrtc connection:<br>
+        Name: <span id="wa_name"></span><br>
+        Login: <span id="wa_login"></span><br>
+        Online: <span id="wa_online"></span><br>
+        Uptime: <span id="wa_uptime"></span><br>
+        Version: <span id="wa_version"></span><br>
+        Clients: <span id="wa_clients"></span><br>
+        <br>
     </p>
 
     <a href="./">Get next</a><br>
     <br>
 
     <div class="body">{{.Body}}</div>
-</div>
+</body>
 
 <style>
     .container {
