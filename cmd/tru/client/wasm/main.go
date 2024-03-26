@@ -27,13 +27,22 @@ func main() {
 	teo := global.Get("teo")
 	teo.Call("connect", url, login, server)
 
-	teo.Call("onOpen", js.FuncOf(func(this js.Value, args []js.Value) interface{} {
-		fmt.Println("webasm connected to webrtc")
-		global.Call("setIdText", "wa_online", true)
-		return nil
-	}))
+	// teo.Call("onOpen", js.FuncOf(func(this js.Value, args []js.Value) interface{} {
+	// 	fmt.Println("webasm connected to webrtc")
+	// 	global.Call("setIdText", "wa_online", true)
+	// 	return nil
+	// }))
 
 	const cmdClients = "clients"
+
+	teo.Call("addReader", js.FuncOf(func(this js.Value, args []js.Value) interface{} {
+		cmd := args[0].Get("command").String()
+		switch cmd {
+		case cmdClients:
+			global.Call("setIdText", "wa_clients", args[1])
+		}
+		return nil
+	}))
 
 	teo.Call("onOpen", js.FuncOf(func(this js.Value, args []js.Value) interface{} {
 		fmt.Println("webasm connected to webrtc")
