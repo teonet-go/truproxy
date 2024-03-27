@@ -5,3 +5,5 @@
 // Common methods for wasm and nowasm build
 
 package client
+
+type ReaderFunc func(ch *Channel, pac *Packet, err error) (processed bool)

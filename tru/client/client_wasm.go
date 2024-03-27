@@ -8,22 +8,61 @@
 package client
 
 import (
+	"net"
 	"sync"
+	"syscall/js"
 	"time"
-
-	"github.com/teonet-go/tru"
 )
 
 type Tru struct {
+	global js.Value
+	teoweb js.Value
+	uuid   string
 }
 
 // TODO:
 func New(port int, params ...interface{}) (t *Tru, err error) {
-	return nil, nil
+
+	t = new(Tru)
+
+	// Define js variables
+	t.global = js.Global()
+	t.teoweb = t.global.Get("teoweb")
+
+	// Get uuid addres from js function
+	t.uuid = t.global.Call("uuidv4").String()
+
+	// Add reader
+	for _, p := range params {
+		if _, ok := p.(func(ch *Channel, pac *Packet, err error) bool); ok {
+			t.teoweb.Call("addReader", js.FuncOf(func(this js.Value, args []js.Value) any {
+				// TODO: args[1] is js.Value with []byte
+				// r(&Channel{}, &Packet{data: args[1]}, nil)
+				return nil
+			}))
+			break
+		}
+	}
+
+	return t, nil
 }
 
 // TODO:
-func (t *Tru) Connect(addr string, reader ...tru.ReaderFunc) (ch *Channel, err error) {
+func (t *Tru) Connect(addr string, reader ...ReaderFunc) (ch *Channel, err error) {
+
+	// Connect to Teonet WebRTC server
+	const url = "wss://signal.teonet.dev/signal"
+	const server = "server-1"
+	t.teoweb.Call("connect", url, t.uuid, server)
+
+	if len(reader) > 0 {
+		t.teoweb.Call("addReader", js.FuncOf(func(this js.Value, args []js.Value) any {
+			// TODO: args[1] is js.Value with []byte
+			// reader[0](&Channel{}, &Packet{data: args[1]}, nil)
+			return nil
+		}))
+	}
+
 	return nil, nil
 }
 
@@ -40,8 +79,8 @@ type Channel struct {
 }
 
 // TODO:
-func (c *Channel) Addr() string {
-	return ""
+func (c *Channel) Addr() (addr net.Addr) {
+	return
 }
 
 // TODO:
