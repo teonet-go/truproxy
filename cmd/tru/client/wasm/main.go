@@ -21,17 +21,10 @@ func main() {
 	const url = "wss://signal.teonet.dev/signal"
 	const server = "server-1"
 	var login string = uuid.String()
-	global.Call("setIdText", "wa_login", login) // setIdText("login", login);
-	// let teo = new teoweb();
-	// teo.connect(url, login, server);
+	global.Call("setIdText", "wa_login", login)
+
 	teo := global.Get("teo")
 	teo.Call("connect", url, login, server)
-
-	// teo.Call("onOpen", js.FuncOf(func(this js.Value, args []js.Value) interface{} {
-	// 	fmt.Println("webasm connected to webrtc")
-	// 	global.Call("setIdText", "wa_online", true)
-	// 	return nil
-	// }))
 
 	const cmdClients = "clients"
 
@@ -48,6 +41,7 @@ func main() {
 		fmt.Println("webasm connected to webrtc")
 		global.Call("setIdText", "wa_online", true)
 		teo.Call("sendCmd", cmdClients)
+		teo.Call("subscribeCmd", cmdClients)
 		return nil
 	}))
 
