@@ -7,7 +7,11 @@
 
 package client
 
-import "github.com/teonet-go/tru"
+import (
+	"errors"
+
+	"github.com/teonet-go/tru"
+)
 
 type Tru struct {
 	*tru.Tru
@@ -45,13 +49,17 @@ func New(port int, params ...interface{}) (t *Tru, err error) {
 
 type Channel struct{ *tru.Channel }
 
-func (tru *Tru) Connect(addr string, reader ...tru.ReaderFunc) (ch *Channel, err error) {
-	c, err := tru.Tru.Connect(addr, reader...)
+func (t *Tru) Connect(addr string, reader ...tru.ReaderFunc) (ch *Channel, err error) {
+	c, err := t.Tru.Connect(addr, reader...)
 	if err != nil {
 		return
 	}
 	ch = &Channel{c}
 	return
+}
+
+func (_ *Tru) ErrChannelDestroyed(err error) bool {
+	return errors.Is(err, tru.ErrChannelDestroyed)
 }
 
 type Packet struct{ *tru.Packet }
