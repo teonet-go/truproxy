@@ -13,6 +13,8 @@ type Tru struct {
 	*tru.Tru
 }
 
+type ReaderFunc func(ch *Channel, pac *Packet, err error) (processed bool)
+
 // New create new tru proxy object and start listen udp packets. Parameters by
 // type:
 //
@@ -28,6 +30,28 @@ type Tru struct {
 //	tru.MaxDataLenType: max packet data length
 func New(port int, params ...interface{}) (t *Tru, err error) {
 	t = new(Tru)
+	// Convert client.Reader to tru.ReaderFunc
+	for i, p := range params {
+		if r, ok := p.(func(ch *Channel, pac *Packet, err error) bool); ok {
+			reader := func(ch *tru.Channel, pac *tru.Packet, err error) bool {
+				return r(&Channel{ch}, &Packet{pac}, err)
+			}
+			params[i] = reader
+		}
+	}
 	t.Tru, err = tru.New(port, append(params, tru.MaxDataLenType(1280))...)
 	return
 }
+
+type Channel struct{ *tru.Channel }
+
+func (tru *Tru) Connect(addr string, reader ...tru.ReaderFunc) (ch *Channel, err error) {
+	c, err := tru.Tru.Connect(addr, reader...)
+	if err != nil {
+		return
+	}
+	ch = &Channel{c}
+	return
+}
+
+type Packet struct{ *tru.Packet }
