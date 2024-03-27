@@ -17,7 +17,6 @@ func main() {
 	fmt.Println(uuid)
 
 	// Connect to Teonet WebRTC server
-	// var teoweb = global.Get("teoweb")
 	const url = "wss://signal.teonet.dev/signal"
 	const server = "server-1"
 	var login string = uuid.String()
@@ -28,7 +27,7 @@ func main() {
 
 	const cmdClients = "clients"
 
-	teo.Call("addReader", js.FuncOf(func(this js.Value, args []js.Value) interface{} {
+	teo.Call("addReader", js.FuncOf(func(this js.Value, args []js.Value) any {
 		cmd := args[0].Get("command").String()
 		switch cmd {
 		case cmdClients:
@@ -37,7 +36,7 @@ func main() {
 		return nil
 	}))
 
-	teo.Call("onOpen", js.FuncOf(func(this js.Value, args []js.Value) interface{} {
+	teo.Call("onOpen", js.FuncOf(func(this js.Value, args []js.Value) any {
 		fmt.Println("webasm connected to webrtc")
 		global.Call("setIdText", "wa_online", true)
 		teo.Call("sendCmd", cmdClients)
@@ -45,16 +44,11 @@ func main() {
 		return nil
 	}))
 
-	teo.Call("onClose", js.FuncOf(func(this js.Value, args []js.Value) interface{} {
+	teo.Call("onClose", js.FuncOf(func(this js.Value, args []js.Value) any {
 		fmt.Println("webasm disconnected from webrtc")
 		global.Call("setIdText", "wa_online", false)
 		return nil
 	}))
-
-	// Set functions
-	// global.Set("teoHashKey", js.FuncOf(hashKey))
-	// global.Set("teoEncrypt", js.FuncOf(encrypt))
-	// global.Set("teoDecrypt", js.FuncOf(decrypt))
 
 	// Wait forever
 	select {}
