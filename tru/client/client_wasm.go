@@ -8,6 +8,7 @@
 package client
 
 import (
+	"fmt"
 	"net"
 	"sync"
 	"syscall/js"
@@ -20,7 +21,7 @@ type Tru struct {
 	uuid   string
 }
 
-// TODO:
+// New creates new Tru instance.
 func New(port int, params ...interface{}) (t *Tru, err error) {
 
 	t = new(Tru)
@@ -34,15 +35,38 @@ func New(port int, params ...interface{}) (t *Tru, err error) {
 
 	// Add reader
 	for _, p := range params {
-		if _, ok := p.(func(ch *Channel, pac *Packet, err error) bool); ok {
-			t.teoweb.Call("addReader", js.FuncOf(func(this js.Value, args []js.Value) any {
-				// TODO: args[1] is js.Value with []byte
-				// r(&Channel{}, &Packet{data: args[1]}, nil)
-				return nil
-			}))
+		if r, ok := p.(func(ch *Channel, pac *Packet, err error) bool); ok {
+			fmt.Println("add reader")
+			t.teoweb.Call("addReader", js.FuncOf(
+				func(this js.Value, args []js.Value) any {
+					fmt.Println("got in reader", args[0].Get("command").String())
+					switch args[0].Get("command").String() {
+					case "clients":
+						t.global.Call("setIdText", "clients", args[1])
+					case "data":
+						r(&Channel{t: t}, &Packet{data: []byte(args[1].String())}, nil)
+					}
+					return nil
+				}))
 			break
 		}
 	}
+
+	// On connect
+	t.teoweb.Call("onOpen", js.FuncOf(func(this js.Value, args []js.Value) any {
+		fmt.Println("onOpen")
+		t.global.Call("setIdText", "online", true)
+		t.teoweb.Call("sendCmd", "clients")
+		t.teoweb.Call("subscribeCmd", "clients")
+		return nil
+	}))
+
+	// On disconnect
+	t.teoweb.Call("onClose", js.FuncOf(func(this js.Value, args []js.Value) any {
+		fmt.Println("onClose")
+		t.global.Call("setIdText", "online", false)
+		return nil
+	}))
 
 	return t, nil
 }
@@ -50,10 +74,12 @@ func New(port int, params ...interface{}) (t *Tru, err error) {
 // TODO:
 func (t *Tru) Connect(addr string, reader ...ReaderFunc) (ch *Channel, err error) {
 
+	fmt.Println("Connect", addr)
+
 	// Connect to Teonet WebRTC server
 	const url = "wss://signal.teonet.dev/signal"
-	const server = "server-1"
-	t.teoweb.Call("connect", url, t.uuid, server)
+	const peer = "server-1"
+	t.teoweb.Call("connect", url, t.uuid, peer)
 
 	if len(reader) > 0 {
 		t.teoweb.Call("addReader", js.FuncOf(func(this js.Value, args []js.Value) any {
@@ -63,7 +89,14 @@ func (t *Tru) Connect(addr string, reader ...ReaderFunc) (ch *Channel, err error
 		}))
 	}
 
-	return nil, nil
+	// Wait connected
+	time.Sleep(time.Second)
+
+	// TODO: Add connected channel to channels map
+
+	ch = &Channel{t: t, peer: peer}
+
+	return
 }
 
 // TODO:
@@ -76,6 +109,8 @@ func (t *Tru) ErrChannelDestroyed(err error) bool {
 }
 
 type Channel struct {
+	t    *Tru   // Pointer to Tru
+	peer string // Peer name
 }
 
 // TODO:
@@ -85,6 +120,8 @@ func (c *Channel) Addr() (addr net.Addr) {
 
 // TODO:
 func (c *Channel) WriteTo(data []byte) (int, error) {
+	fmt.Println("WriteTo", data)
+	c.t.teoweb.Call("sendCmd", "data", string(data))
 	return 0, nil
 }
 
