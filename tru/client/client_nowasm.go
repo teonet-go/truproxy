@@ -9,6 +9,8 @@ package client
 
 import (
 	"errors"
+	"fmt"
+	"net"
 
 	"github.com/teonet-go/tru"
 )
@@ -76,7 +78,19 @@ func (t *Tru) WriteToCh(data []byte, addr string) (id int, err error) {
 	return
 }
 
-func (_ *Tru) ErrChannelDestroyed(err error) bool {
+func (ch *Channel) WriteTo(data []byte, delivery ...interface{}) (id int, err error) {
+
+	if _, ok := ch.Addr().(*net.UDPAddr); !ok {
+		// if ch.Channel.Addr().String() == "" {
+		err = fmt.Errorf("looks like webrtc channel, skip it")
+		fmt.Println(err)
+		return
+	}
+
+	return ch.Channel.WriteTo(data, delivery...)
+}
+
+func (*Tru) ErrChannelDestroyed(err error) bool {
 	return errors.Is(err, tru.ErrChannelDestroyed)
 }
 

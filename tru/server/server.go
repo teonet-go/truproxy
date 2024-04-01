@@ -34,8 +34,9 @@ type TruServer struct {
 }
 
 // New creates a new TruServer instance.
-func New(appName, appVersion string, appStart time.Time, sigAddr,
-	name string) (t *TruServer, err error) {
+func New(appName, appVersion string, appStart time.Time, sigAddr string,
+	ownSign bool, name string,
+	port int, params ...interface{}) (t *TruServer, err error) {
 
 	t = &TruServer{}
 
@@ -47,7 +48,7 @@ func New(appName, appVersion string, appStart time.Time, sigAddr,
 	// Create WebRTC server
 	t.WebRTC, err = webrtc.New(
 		sigAddr, // signal server address
-		false,   // connect to remote signal server
+		ownSign, // connect to remote signal server if false or create own if true
 		name,    // Name of this server
 		new(teogw.TeogwData).MarshalJson,
 		new(teogw.TeogwData).UnmarshalJson,
@@ -60,7 +61,7 @@ func New(appName, appVersion string, appStart time.Time, sigAddr,
 	t.webrtcCommands(appName, appVersion, appStart)
 
 	// Create Tru server
-	t.Tru, err = tru.New(0)
+	t.Tru, err = tru.New(port, params...)
 	if err != nil {
 		return nil, err
 	}

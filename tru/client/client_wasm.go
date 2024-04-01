@@ -41,8 +41,14 @@ func New(port int, params ...interface{}) (t *Tru, err error) {
 				func(this js.Value, args []js.Value) any {
 					fmt.Println("got in reader", args[0].Get("command").String())
 					switch args[0].Get("command").String() {
+					case "name":
+						t.global.Call("setIdText", "name", args[1])
 					case "clients":
 						t.global.Call("setIdText", "clients", args[1])
+					case "version":
+						t.global.Call("setIdText", "version", args[1])
+					case "uptime":
+						t.global.Call("setIdText", "uptime", args[1])
 					case "data":
 						r(&Channel{t: t}, &Packet{data: []byte(args[1].String())}, nil)
 					}
@@ -58,6 +64,9 @@ func New(port int, params ...interface{}) (t *Tru, err error) {
 		t.global.Call("setIdText", "online", true)
 		t.teoweb.Call("sendCmd", "clients")
 		t.teoweb.Call("subscribeCmd", "clients")
+		t.teoweb.Call("sendCmd", "name")
+		t.teoweb.Call("sendCmd", "uptime")
+		t.teoweb.Call("sendCmd", "version")
 		return nil
 	}))
 
@@ -78,7 +87,7 @@ func (t *Tru) Connect(addr string, reader ...ReaderFunc) (ch *Channel, err error
 
 	// Connect to Teonet WebRTC server
 	const url = "wss://signal.teonet.dev/signal"
-	const peer = "server-1"
+	const peer = "tloop-server-1"
 	t.teoweb.Call("connect", url, t.uuid, peer)
 
 	if len(reader) > 0 {
@@ -122,6 +131,20 @@ func (c *Channel) Addr() (addr net.Addr) {
 func (c *Channel) WriteTo(data []byte) (int, error) {
 	fmt.Println("WriteTo", data)
 	c.t.teoweb.Call("sendCmd", "data", string(data))
+	return 0, nil
+}
+
+// TODO:
+func (t *Tru) WriteToCh(data []byte, addr string) (int, error) {
+
+	// t.ForEachChannel(func(ch *tru.Channel) {
+	// 	if ch.Addr().String() == addr {
+	// 		id, err = ch.WriteTo(data)
+	// 	}
+	// })
+
+	fmt.Println("WriteToCh", data)
+
 	return 0, nil
 }
 
