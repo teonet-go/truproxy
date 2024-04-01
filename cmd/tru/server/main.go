@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/NYTimes/gziphandler"
 	"github.com/teonet-go/truproxy/tru/server"
@@ -17,11 +18,13 @@ import (
 )
 
 const (
-	appShort   = "teoproxy-serve"
-	appName    = "Teonet truproxy web server"
-	appLong  = ``
+	appShort   = "truproxy-server"
+	appName    = "Teonet truproxy server"
+	appLong    = ``
 	appVersion = "0.0.1"
 )
+
+var appStart = time.Now()
 
 var domain string
 
@@ -63,8 +66,8 @@ func main() {
 	}
 	http.Handle("/", frontendFS)
 
-	// Register tru proxy server handler
-	_ /* serve */, err := server.New(appShort)
+	// Start tru proxy server
+	_, err := server.New(appName, appVersion, appStart, "", "server-2")
 	if err != nil {
 		fmt.Println("Create teonet proxy server error:", err)
 		return

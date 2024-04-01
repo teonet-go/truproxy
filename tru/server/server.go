@@ -7,11 +7,14 @@ package server
 
 import (
 	"log"
-	"sync"
+	"time"
 
-	"github.com/teonet-go/teowebrtc_server"
+	"github.com/teonet-go/teogw"
+	webrtc "github.com/teonet-go/teowebrtc_server"
 	"github.com/teonet-go/tru"
 )
+
+const defaultSignalServer = "signal.teonet.dev"
 
 // init initializes the Go program.
 //
@@ -26,23 +29,41 @@ func init() {
 // the Tru client, and API clients. As an exported type, it is part of the
 // public API.
 type TruServer struct {
-	*sync.Mutex
-	*teowebrtc_server.WebRTC
+	*webrtc.WebRTC
 	*tru.Tru
-	apiClients *APIClients
 }
 
-// New creates a new TruServer instance. It initializes the mutex, API clients,
-// Teonet client, and websocket server. The appShort parameter specifies the
-// application name. The monitor parameter optionally configures connecting to a
-// Teonet monitor for metrics reporting. It returns the TruServer instance
-// and any error. As an exported function, this serves as the main constructor for
-// the TruServer type.
-func New(appShort string) (teo *TruServer, err error) {
-	teo = &TruServer{Mutex: new(sync.Mutex)}
+// New creates a new TruServer instance.
+func New(appName, appVersion string, appStart time.Time, sigAddr,
+	name string) (t *TruServer, err error) {
 
-	// Init api clients object
-	teo.initAPIClients()
+	t = &TruServer{}
+
+	// Use default teonet signal server if not specified
+	if sigAddr == "" {
+		sigAddr = defaultSignalServer
+	}
+
+	// Create WebRTC server
+	t.WebRTC, err = webrtc.New(
+		sigAddr, // signal server address
+		false,   // connect to remote signal server
+		name,    // Name of this server
+		new(teogw.TeogwData).MarshalJson,
+		new(teogw.TeogwData).UnmarshalJson,
+		func(peer string, dc webrtc.DataChannel) {},
+		func(peer string, dc webrtc.DataChannel) {},
+	)
+	if err != nil {
+		return nil, err
+	}
+	t.webrtcCommands(appName, appVersion, appStart)
+
+	// Create Tru server
+	t.Tru, err = tru.New(0)
+	if err != nil {
+		return nil, err
+	}
 
 	return
 }

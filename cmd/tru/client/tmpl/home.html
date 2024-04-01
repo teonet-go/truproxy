@@ -13,7 +13,7 @@
         
         // Connect to Teonet WebRTC server
         const url = "wss://signal.teonet.dev/signal";
-        const server = "server-1";
+        const server = "server-2";
         const login = uuidv4();
         setIdText("login", login);
         let teo = new teoweb();
@@ -30,7 +30,10 @@
 
         teo.addReader(function (gw, data) {
             switch (gw.command) {
-            case cmdClients || cmdName || cmdUptime || cmdVersion:
+            case cmdClients:
+            case cmdName:
+            case cmdUptime:
+            case cmdVersion:
                 setIdText(gw.command, data);
                 break;
             }

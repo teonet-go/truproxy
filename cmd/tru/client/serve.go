@@ -109,7 +109,7 @@ func (s *Serve) textToHtml(txt string) string {
 
 // homeHandler home page handler
 func (s *Serve) homeHandler(w http.ResponseWriter, r *http.Request) {
-	title := "Teoproxy client"
+	title := "Truproxy client"
 	fortune, _ := s.Fortune()
 	fortune = s.textToHtml(fortune)
 	p := &Page{

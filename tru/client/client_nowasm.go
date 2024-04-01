@@ -64,6 +64,18 @@ func (t *Tru) Connect(addr string, reader ...ReaderFunc) (ch *Channel, err error
 	return
 }
 
+// WriteToCh write data to channel by address
+func (t *Tru) WriteToCh(data []byte, addr string) (id int, err error) {
+
+	t.ForEachChannel(func(ch *tru.Channel) {
+		if ch.Addr().String() == addr {
+			id, err = ch.WriteTo(data)
+		}
+	})
+
+	return
+}
+
 func (_ *Tru) ErrChannelDestroyed(err error) bool {
 	return errors.Is(err, tru.ErrChannelDestroyed)
 }
