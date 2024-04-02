@@ -9,7 +9,6 @@ package client
 
 import (
 	"fmt"
-	"net"
 	"sync"
 	"syscall/js"
 	"time"
@@ -39,7 +38,7 @@ func New(port int, params ...interface{}) (t *Tru, err error) {
 			fmt.Println("add reader")
 			t.teoweb.Call("addReader", js.FuncOf(
 				func(this js.Value, args []js.Value) any {
-					fmt.Println("got in reader", args[0].Get("command").String())
+					// fmt.Println("got in reader, command:", args[0].Get("command").String())
 					switch args[0].Get("command").String() {
 					case "name":
 						t.global.Call("setIdText", "name", args[1])
@@ -50,7 +49,11 @@ func New(port int, params ...interface{}) (t *Tru, err error) {
 					case "uptime":
 						t.global.Call("setIdText", "uptime", args[1])
 					case "data":
-						r(&Channel{t: t}, &Packet{data: []byte(args[1].String())}, nil)
+						if args[1].IsNull() {
+							// fmt.Println("got empty data command")
+							return nil
+						}
+						go r(&Channel{t: t}, &Packet{data: []byte(args[1].String())}, nil)
 					}
 					return nil
 				}))
@@ -123,8 +126,8 @@ type Channel struct {
 }
 
 // TODO:
-func (c *Channel) Addr() (addr net.Addr) {
-	return
+func (c *Channel) Addr() (addr string) {
+	return c.peer
 }
 
 // TODO:
@@ -137,13 +140,8 @@ func (c *Channel) WriteTo(data []byte) (int, error) {
 // TODO:
 func (t *Tru) WriteToCh(data []byte, addr string) (int, error) {
 
-	// t.ForEachChannel(func(ch *tru.Channel) {
-	// 	if ch.Addr().String() == addr {
-	// 		id, err = ch.WriteTo(data)
-	// 	}
-	// })
-
-	fmt.Println("WriteToCh", data)
+	// The WriteToCh is not implemented in wasm version. This function is not
+	// used in client mode.
 
 	return 0, nil
 }
