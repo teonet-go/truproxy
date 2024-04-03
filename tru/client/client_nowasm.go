@@ -69,17 +69,20 @@ func (t *Tru) Connect(addr string, reader ...ReaderFunc) (ch *Channel, err error
 	return
 }
 
-// WriteToCh write data to channel by address
-// func (t *Tru) WriteToCh(data []byte, addr string) (id int, err error) {
+// WriteToCh write data to channel by address.
+func (t *Tru) WriteToCh(data []byte, addr string) (id int, err error) {
 
-// 	t.ForEachChannel(func(ch *tru.Channel) {
-// 		if ch.Addr().String() == addr {
-// 			id, err = ch.WriteTo(data)
-// 		}
-// 	})
+	// The WriteToCh is not implemented in nowasm version. This function is not
+	// used in client mode.
 
-// 	return
-// }
+	// t.ForEachChannel(func(ch *tru.Channel) {
+	// 	if ch.Addr().String() == addr {
+	// 		id, err = ch.WriteTo(data)
+	// 	}
+	// })
+
+	return
+}
 
 func (*Tru) ErrChannelDestroyed(err error) bool {
 	return errors.Is(err, tru.ErrChannelDestroyed)
@@ -97,15 +100,13 @@ func (ch *Channel) WriteTo(data []byte, delivery ...interface{}) (id int, err er
 		err = fmt.Errorf("looks like webrtc channel, try send to webrtc channel")
 		fmt.Println(err)
 
-		// Create data from gw, command, data and error and send it to dc
-		// data, err = w.MarshalJson(gw, "data", data, nil)
 		var gw teogw.TeogwData
-		data, err = new(teogw.TeogwData).MarshalJson(gw, "data", data, nil)
+		data, err = gw.MarshalJson(gw, "data", data, nil)
 		if err != nil {
 			return
 		}
-
 		err = ch.DataChannel.Send(data)
+
 		return
 	}
 

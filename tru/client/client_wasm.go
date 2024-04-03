@@ -102,7 +102,12 @@ func (t *Tru) Connect(addr string, reader ...ReaderFunc) (ch *Channel, err error
 	}
 
 	// Wait connected
-	time.Sleep(time.Second)
+	var wait = make(chan any)
+	t.teoweb.Call("whenConnected", js.FuncOf(func(this js.Value, args []js.Value) any {
+		wait <- nil
+		return nil
+	}))
+	<-wait
 
 	// TODO: Add connected channel to channels map
 
@@ -148,7 +153,7 @@ func (t *Tru) WriteToCh(data []byte, addr string) (int, error) {
 
 // TODO:
 func (c *Channel) Close() {
-
+	c.t.teoweb.Call("close")
 }
 
 // TODO:
