@@ -12,6 +12,8 @@ import (
 	"sync"
 	"syscall/js"
 	"time"
+
+	"github.com/teonet-go/tru"
 )
 
 type Tru struct {
@@ -33,6 +35,7 @@ func New(port int, params ...interface{}) (t *Tru, err error) {
 	t.uuid = t.global.Call("uuidv4").String()
 
 	// Add reader
+	var reader func(ch *Channel, pac *Packet, err error) bool
 	for _, p := range params {
 		if r, ok := p.(func(ch *Channel, pac *Packet, err error) bool); ok {
 			fmt.Println("add reader")
@@ -56,14 +59,16 @@ func New(port int, params ...interface{}) (t *Tru, err error) {
 						go r(&Channel{t: t}, &Packet{data: []byte(args[1].String())}, nil)
 					}
 					return nil
-				}))
+				}),
+			)
+			reader = r
 			break
 		}
 	}
 
 	// On connect
 	t.teoweb.Call("onOpen", js.FuncOf(func(this js.Value, args []js.Value) any {
-		fmt.Println("onOpen")
+		fmt.Println("client_wasm onOpen")
 		t.global.Call("setIdText", "online", true)
 		t.teoweb.Call("sendCmd", "clients")
 		t.teoweb.Call("subscribeCmd", "clients")
@@ -75,8 +80,11 @@ func New(port int, params ...interface{}) (t *Tru, err error) {
 
 	// On disconnect
 	t.teoweb.Call("onClose", js.FuncOf(func(this js.Value, args []js.Value) any {
-		fmt.Println("onClose")
+		fmt.Println("client_wasm onClose")
 		t.global.Call("setIdText", "online", false)
+		if reader != nil {
+			reader(&Channel{t: t}, nil, tru.ErrChannelDestroyed)
+		}
 		return nil
 	}))
 
@@ -153,6 +161,7 @@ func (t *Tru) WriteToCh(data []byte, addr string) (int, error) {
 
 // TODO:
 func (c *Channel) Close() {
+	fmt.Println("---= wasm channel close =---")
 	c.t.teoweb.Call("close")
 }
 
