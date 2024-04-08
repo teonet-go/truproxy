@@ -8,6 +8,7 @@
 package client
 
 import (
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"net"
@@ -101,6 +102,7 @@ func (ch *Channel) WriteTo(data []byte, delivery ...interface{}) (id int, err er
 		fmt.Println(err)
 
 		var gw teogw.TeogwData
+		data = []byte(base64.StdEncoding.EncodeToString(data))
 		data, err = gw.MarshalJson(gw, "data", data, nil)
 		if err != nil {
 			return

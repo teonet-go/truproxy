@@ -8,6 +8,7 @@
 package client
 
 import (
+	"encoding/base64"
 	"fmt"
 	"sync"
 	"syscall/js"
@@ -52,11 +53,18 @@ func New(port int, params ...interface{}) (t *Tru, err error) {
 					case "uptime":
 						t.global.Call("setIdText", "uptime", args[1])
 					case "data":
-						if args[1].IsNull() {
-							// fmt.Println("got empty data command")
+						if args[1].IsNull() || len(args[1].String()) == 0 {
+							// Skip command without data
 							return nil
 						}
-						go r(&Channel{t: t}, &Packet{data: []byte(args[1].String())}, nil)
+						s := args[1].String()
+						d, err := base64.StdEncoding.DecodeString(s)
+						if err != nil {
+							fmt.Println("base64 decode error:", err, s)
+							return nil
+						}
+
+						go r(&Channel{t: t}, &Packet{data: d}, nil)
 					}
 					return nil
 				}),
@@ -146,6 +154,7 @@ func (c *Channel) Addr() (addr string) {
 // TODO:
 func (c *Channel) WriteTo(data []byte) (int, error) {
 	fmt.Println("WriteTo", data)
+	data = []byte(base64.StdEncoding.EncodeToString(data))
 	c.t.teoweb.Call("sendCmd", "data", string(data))
 	return 0, nil
 }
