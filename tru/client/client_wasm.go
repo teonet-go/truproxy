@@ -123,7 +123,13 @@ func (t *Tru) Connect(addr string, reader ...ReaderFunc) (ch *Channel, err error
 		wait <- nil
 		return nil
 	}))
-	<-wait
+	select {
+		
+	case <-wait:
+	case <-time.After(10 * time.Second):
+		err = fmt.Errorf("timeout")
+		return
+	}
 
 	// TODO: Add connected channel to channels map
 
