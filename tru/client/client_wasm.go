@@ -107,8 +107,9 @@ func (t *Tru) Connect(addr string, reader ...ReaderFunc) (ch *Channel, err error
 	// Connect to Teonet WebRTC server
 	const url = "wss://signal.teonet.dev/signal"
 	const peer = "tloop-server-1"
-	t.teoweb.Call("connect", url, t.uuid, peer)
+	t.teoweb.Call("connect", url, t.uuid, peer, false)
 
+	// Common reader which sets in reader function argument
 	if len(reader) > 0 {
 		t.teoweb.Call("addReader", js.FuncOf(func(this js.Value, args []js.Value) any {
 			// TODO: args[1] is js.Value with []byte
@@ -117,24 +118,18 @@ func (t *Tru) Connect(addr string, reader ...ReaderFunc) (ch *Channel, err error
 		}))
 	}
 
-	// Wait connected
-	var wait = make(chan any)
-	t.teoweb.Call("whenConnected", js.FuncOf(func(this js.Value, args []js.Value) any {
-		wait <- nil
-		return nil
-	}))
-	select {
-		
-	case <-wait:
-	case <-time.After(10 * time.Second):
-		err = fmt.Errorf("timeout")
-		return
+	// Wait connected up to 10 seconds
+	started := time.Now()
+	for !t.teoweb.Call("connected").Bool() {
+		if time.Since(started) > 10*time.Second {
+			err = fmt.Errorf("timeout")
+			return
+		}
+		time.Sleep(10 * time.Millisecond)
 	}
 
-	// TODO: Add connected channel to channels map
-
+	// Return connected channel
 	ch = &Channel{t: t, peer: peer}
-
 	return
 }
 
