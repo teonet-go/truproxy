@@ -100,13 +100,14 @@ func New(port int, params ...interface{}) (t *Tru, err error) {
 }
 
 // TODO:
-func (t *Tru) Connect(addr string, reader ...ReaderFunc) (ch *Channel, err error) {
+func (t *Tru) Connect(addr, peer string, reader ...ReaderFunc) (ch *Channel, 
+	err error) {
 
 	fmt.Println("Connect", addr)
 
 	// Connect to Teonet WebRTC server
 	const url = "wss://signal.teonet.dev/signal"
-	const peer = "tloop-server-1"
+	// const peer = "tloop-server-1"
 	t.teoweb.Call("connect", url, t.uuid, peer, false)
 
 	// Common reader which sets in reader function argument

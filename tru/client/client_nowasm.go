@@ -51,7 +51,8 @@ func New(port int, params ...interface{}) (t *Tru, err error) {
 	return
 }
 
-func (t *Tru) Connect(addr string, reader ...ReaderFunc) (ch *Channel, err error) {
+func (t *Tru) Connect(addr, peer string, reader ...ReaderFunc) (ch *Channel, 
+	err error) {
 
 	var r []tru.ReaderFunc
 	if len(reader) > 0 {
