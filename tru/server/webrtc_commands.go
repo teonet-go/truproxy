@@ -7,6 +7,7 @@
 package server
 
 import (
+	"fmt"
 	"time"
 
 	w "github.com/teonet-go/teowebrtc_server"
@@ -39,7 +40,23 @@ func (t *TruServer) webrtcCommands(appName, appVersion string, appStart time.Tim
 
 		// Get app uptime
 		Add("uptime", func(dc w.DataChannel, gw w.WebRTCData) ([]byte, error) {
-			uptime := time.Since(appStart).String()
+			// Time since app start
+			d := time.Since(appStart)
+			d = d.Round(time.Second)
+
+			// Hours
+			h := d / time.Hour
+			d -= h * time.Hour
+
+			// Minutes
+			m := d / time.Minute
+			d -= m * time.Minute
+
+			// Seconds
+			s := d / time.Second
+
+			// Format time duration in hours, minutes and seconds
+			uptime := fmt.Sprintf("%dh %02dm %02ds", h, m, s)
 			return []byte(uptime), nil
 		})
 }
