@@ -1,9 +1,7 @@
 go 1.23.4
 
 use (
-	./
+	.
 	./cmd/tru/client
 	./cmd/tru/server
-	./tru/client
-	./tru/server
 )
