@@ -34,6 +34,23 @@ type TruServer struct {
 }
 
 // New creates a new TruServer instance.
+//
+// Parameters:
+// appName: the name of the application, used in the WebRTC server.
+// appVersion: the version of the application, used in the WebRTC server.
+// appStart: the start time of the application, used in the WebRTC server.
+// sigAddr: the address of the signal server. If empty, the default
+//          teonet signal server is used.
+// ownSign: if true, the WebRTC server will create its own signal server,
+//          otherwise it will connect to the remote signal server at sigAddr.
+// name: the name of this server, used in the WebRTC server.
+// connect: a callback function called when a new peer is connected, or nil.
+// disconn: a callback function called when a peer is disconnected, or nil.
+// port: the port number of the Tru server.
+// params: additional parameters passed to the Tru server.
+//
+// Returns a new TruServer instance, or an error if the WebRTC server or the
+// Tru server cannot be created.
 func New(appName, appVersion string, appStart time.Time, sigAddr string,
 	ownSign bool, name string,
 	connect func(peer string, dc webrtc.DataChannel),
@@ -47,26 +64,34 @@ func New(appName, appVersion string, appStart time.Time, sigAddr string,
 		sigAddr = defaultSignalServer
 	}
 
-	// Create WebRTC server
-	t.WebRTC, err = webrtc.New(
-		sigAddr, // signal server address
-		ownSign, // connect to remote signal server if false or create own if true
-		name,    // Name of this server
-		new(teogw.TeogwData).MarshalJson,
-		new(teogw.TeogwData).UnmarshalJson,
-		connect,
-		disconn,
-	)
-	if err != nil {
-		return nil, err
+	// Combine onOpenClose callbacks
+	var onOpenClose []webrtc.OnOpenCloseType
+	if connect != nil {
+		onOpenClose = append(onOpenClose, connect)
 	}
-	t.webrtcCommands(appName, appVersion, appStart)
+	if disconn != nil {
+		onOpenClose = append(onOpenClose, disconn)
+	}
+
+	// Create WebRTC server
+	if t.WebRTC, err = webrtc.New(
+		sigAddr,                            // signal server address
+		ownSign,                            // connect to remote signal server if false or create own if true
+		name,                               // name of this server
+		new(teogw.TeogwData).MarshalJson,   // marshal JSON data function
+		new(teogw.TeogwData).UnmarshalJson, // unmarshal JSON data function
+		onOpenClose...,                     // onOpenClose callback functions
+	); err != nil {
+		return
+	}
 
 	// Create Tru server
-	t.Tru, err = tru.New(port, params...)
-	if err != nil {
-		return nil, err
+	if t.Tru, err = tru.New(port, params...); err != nil {
+		return
 	}
+
+	// Register WebRTC commands
+	t.webrtcCommands(appName, appVersion, appStart)
 
 	return
 }

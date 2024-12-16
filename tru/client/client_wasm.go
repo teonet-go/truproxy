@@ -100,7 +100,7 @@ func New(port int, params ...interface{}) (t *Tru, err error) {
 }
 
 // TODO:
-func (t *Tru) Connect(addr, peer string, reader ...ReaderFunc) (ch *Channel, 
+func (t *Tru) Connect(addr, peer string, reader ...ReaderFunc) (ch *Channel,
 	err error) {
 
 	fmt.Println("Connect", addr)

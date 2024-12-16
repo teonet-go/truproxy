@@ -67,7 +67,7 @@ func main() {
 	http.Handle("/", frontendFS)
 
 	// Start tru proxy server
-	_, err := server.New(appName, appVersion, appStart, "", "server-2")
+	_, err := server.New(appName, appVersion, appStart, "", false, "server-2", nil, nil, 0)
 	if err != nil {
 		fmt.Println("Create teonet proxy server error:", err)
 		return
