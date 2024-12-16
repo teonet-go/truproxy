@@ -1,6 +1,6 @@
 module github.com/teonet-go/truproxy/cmd/client
 
-go 1.22.1
+go 1.23.4
 
 require (
 	github.com/teonet-go/teomon v0.5.14

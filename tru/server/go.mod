@@ -1,6 +1,6 @@
 module github.com/teonet-go/truproxy/tru/server
 
-go 1.22.1
+go 1.23.4
 
 // replace github.com/teonet-go/teowebrtc_server => ../../../teowebrtc_server
 // replace github.com/teonet-go/teowebrtc_signal_client => ../../../teowebrtc_signal_client
